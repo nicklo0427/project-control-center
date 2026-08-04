@@ -1,0 +1,32 @@
+// Public release configuration. A release must never silently fall back to unsigned output.
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "io.github.nicklo0427.projectcontrolcenter",
+  "asar": true,
+  "productName": "Project Control Center",
+  "forceCodeSigning": true,
+  "directories": {
+    "output": "release/${version}"
+  },
+  "files": [
+    "dist",
+    "dist-electron"
+  ],
+  "mac": {
+    "category": "public.app-category.developer-tools",
+    "icon": "build/icon.icns",
+    "minimumSystemVersion": "12.0.0",
+    "hardenedRuntime": true,
+    "notarize": true,
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["universal"]
+      }
+    ],
+    "artifactName": "Project-Control-Center-${version}-${arch}.${ext}"
+  },
+  "dmg": {
+    "sign": false
+  }
+}

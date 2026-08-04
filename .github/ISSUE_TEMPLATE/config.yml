@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/nicklo0427/project-control-center/security/advisories/new
+    about: 請私密回報安全漏洞，不要建立公開 Issue。

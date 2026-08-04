@@ -1,0 +1,52 @@
+{
+  "name": "project-control-center",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local desktop console for discovering and running npm projects",
+  "author": "nicklo0427",
+  "license": "MIT",
+  "homepage": "https://github.com/nicklo0427/project-control-center#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicklo0427/project-control-center.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nicklo0427/project-control-center/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "generate:icon": "node scripts/generate-icon.mjs",
+    "typecheck": "vue-tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "package:local": "npm run build && npm run generate:icon && electron-builder --config electron-builder.local.json5 --mac --arm64",
+    "release:mac": "npm run build && npm run generate:icon && electron-builder --mac --universal --publish never",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "vue": "^3.5.40"
+  },
+  "overrides": {
+    "postcss": "8.5.25"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/test-utils": "^2.4.6",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "jsdom": "^26.1.0",
+    "png2icons": "^2.0.1",
+    "sharp": "^0.35.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.0",
+    "vite-plugin-electron": "^1.1.1",
+    "vite-plugin-electron-renderer": "^1.0.0",
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.9"
+  },
+  "main": "dist-electron/main.js"
+}

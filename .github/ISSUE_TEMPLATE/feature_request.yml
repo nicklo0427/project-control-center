@@ -1,0 +1,22 @@
+name: Feature request
+description: 提議新的使用情境或改善
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 想解決的問題
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建議方案
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: 安全與相容性考量
+      description: 若涉及命令或程序停止，請說明預期的安全邊界。

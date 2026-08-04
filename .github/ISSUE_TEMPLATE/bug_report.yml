@@ -1,0 +1,39 @@
+name: Bug report
+description: 回報可重現的錯誤或異常行為
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: 請勿貼上 token、密碼、完整個人路徑或未遮蔽的程序命令。安全漏洞請使用 GitHub 私密漏洞回報。
+  - type: input
+    id: version
+    attributes:
+      label: App 版本
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS 與 Mac 架構
+      placeholder: macOS 15.6, Apple Silicon
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重現步驟
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 預期與實際結果
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 已遮蔽的診斷資訊
+      description: 可附環境診斷頁內容，請先移除個人路徑與秘密。

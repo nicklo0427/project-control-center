@@ -1,0 +1,12 @@
+// Unsigned build for local smoke tests only. Never upload this artifact as a public release.
+{
+  "extends": "./electron-builder.json5",
+  "forceCodeSigning": false,
+  "mac": {
+    "identity": null,
+    "notarize": false,
+    "hardenedRuntime": false,
+    "target": "dmg",
+    "artifactName": "Project-Control-Center-${version}-local-${arch}.${ext}"
+  }
+}

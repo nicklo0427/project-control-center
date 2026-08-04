@@ -1,0 +1,35 @@
+name: Node/npm detection issue
+description: 回報 Node、npm、PATH、lsof 或 ps 偵測問題
+title: "[Environment]: "
+labels: [environment]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: App 版本
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS 與 Mac 架構
+    validations:
+      required: true
+  - type: dropdown
+    id: manager
+    attributes:
+      label: Node 安裝方式
+      options: [Homebrew, nvm, fnm, Volta, 官方安裝包, 其他]
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: 環境診斷結果
+      description: 請移除使用者名稱、個人路徑、token 及秘密。
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: 其他資訊與重現步驟
