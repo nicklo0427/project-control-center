@@ -15,6 +15,12 @@ release
 build
 *.local
 
+# Signing and notarization credentials must never enter Git history.
+*.p12
+*.p8
+*.cer
+*.certSigningRequest
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
