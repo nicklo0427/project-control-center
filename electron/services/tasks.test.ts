@@ -7,8 +7,11 @@ function project(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
   return {
     id: 'project-1',
     name: 'demo',
+    originalName: 'demo',
     path: '/tmp/demo',
     relativePath: 'demo',
+    isPinned: false,
+    pinnedAt: null,
     brands: ['ot888', 'rojs'],
     scripts: [
       { name: 'dev', command: 'node scripts/dev.js', brandAware: true },
@@ -68,6 +71,20 @@ describe('TaskManager', () => {
     expect(task?.url).toBe('http://localhost:5173/')
     expect(task?.status).toBe('succeeded')
     expect(logs.join('')).toContain('任務完成')
+  })
+
+  it('updates existing task names and emits refreshed task state', () => {
+    const child = fakeChild()
+    const manager = new TaskManager((() => child) as never)
+    const projectNames: string[] = []
+    manager.on('state', (task) => projectNames.push(task.projectName))
+    manager.setProjects([project()])
+    manager.startTask({ projectId: 'project-1', script: 'dev', brand: 'ot888' })
+
+    manager.updateProjectName('project-1', '自訂專案')
+
+    expect(manager.listTasks()[0]?.projectName).toBe('自訂專案')
+    expect(projectNames[projectNames.length - 1]).toBe('自訂專案')
   })
 })
 

@@ -116,15 +116,20 @@ async function parseProject(
       brandAware: isBrandAwareScript(name, command, brands),
     }))
 
+    const originalName = typeof parsed.name === 'string' && parsed.name.trim()
+      ? parsed.name
+      : path.basename(projectPath)
+
     return {
       id: stableProjectId(projectPath),
-      name: typeof parsed.name === 'string' && parsed.name.trim()
-        ? parsed.name
-        : path.basename(projectPath),
+      name: originalName,
+      originalName,
       path: projectPath,
       relativePath: path.relative(rootPath, projectPath) || '.',
       scripts,
       brands,
+      isPinned: false,
+      pinnedAt: null,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : '未知錯誤'

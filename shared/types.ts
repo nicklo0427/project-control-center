@@ -15,10 +15,32 @@ export interface ProjectScript {
 export interface ProjectSummary {
   id: string
   name: string
+  originalName: string
   path: string
   relativePath: string
   scripts: ProjectScript[]
   brands: string[]
+  isPinned: boolean
+  pinnedAt: string | null
+}
+
+export interface ProjectPreference {
+  displayName?: string
+  pinnedAt?: string
+}
+
+export type ProjectPreferenceMap = Record<string, ProjectPreference>
+
+export interface UpdateProjectPreferenceInput {
+  projectId: string
+  isPinned?: boolean
+  displayName?: string | null
+}
+
+export interface ProjectPreferenceResult {
+  ok: boolean
+  project?: ProjectSummary
+  error?: string
 }
 
 export interface ScanProjectsResult {

@@ -68,6 +68,14 @@ export class TaskManager extends EventEmitter {
     this.projects = new Map(projects.map((project) => [project.id, project]))
   }
 
+  updateProjectName(projectId: string, projectName: string): void {
+    for (const managed of this.tasks.values()) {
+      if (managed.record.projectId !== projectId || managed.record.projectName === projectName) continue
+      managed.record.projectName = projectName
+      this.emitState(managed.record)
+    }
+  }
+
   listTasks(): TaskRecord[] {
     return [...this.tasks.values()]
       .map((task) => publicRecord(task.record))

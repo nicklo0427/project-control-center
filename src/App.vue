@@ -37,6 +37,9 @@ const isStoppingPort = ref(false)
 const diagnostics = ref<EnvironmentDiagnostics | null>(null)
 const isLoadingDiagnostics = ref(false)
 const terminalElement = ref<HTMLElement | null>(null)
+const editingProjectId = ref('')
+const projectNameDraft = ref('')
+const savingPreferenceProjectId = ref('')
 
 let removeLogListener: (() => void) | null = null
 let removeStateListener: (() => void) | null = null
@@ -56,9 +59,20 @@ const filteredProjects = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return projects.value
   return projects.value.filter((project) =>
-    `${project.name} ${project.relativePath}`.toLowerCase().includes(query),
+    `${project.name} ${project.originalName} ${project.relativePath}`.toLowerCase().includes(query),
   )
 })
+
+const pinnedProjects = computed(() => filteredProjects.value
+  .filter((project) => project.isPinned)
+  .sort((a, b) => (a.pinnedAt ?? '').localeCompare(b.pinnedAt ?? '')))
+
+const regularProjects = computed(() => filteredProjects.value.filter((project) => !project.isPinned))
+
+const projectSections = computed(() => [
+  { key: 'pinned', label: '已釘選', projects: pinnedProjects.value },
+  { key: 'all', label: pinnedProjects.value.length ? '所有專案' : '', projects: regularProjects.value },
+].filter((section) => section.projects.length > 0))
 
 const selectedProject = computed(() =>
   projects.value.find((project) => project.id === selectedProjectId.value) ?? null,
@@ -126,6 +140,74 @@ function setProjects(nextProjects: ProjectSummary[]) {
   }
 }
 
+function replaceProject(nextProject: ProjectSummary) {
+  projects.value = projects.value.map((project) => (
+    project.id === nextProject.id ? nextProject : project
+  ))
+}
+
+async function toggleProjectPin(project: ProjectSummary) {
+  if (savingPreferenceProjectId.value) return
+  savingPreferenceProjectId.value = project.id
+  errorMessage.value = ''
+  try {
+    const result = await window.portManager.updateProjectPreference({
+      projectId: project.id,
+      isPinned: !project.isPinned,
+    })
+    if (!result.ok || !result.project) {
+      errorMessage.value = result.error ?? '無法更新釘選狀態。'
+      return
+    }
+    replaceProject(result.project)
+    showToast(result.project.isPinned ? '專案已釘選' : '已取消釘選')
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '無法更新釘選狀態。'
+  } finally {
+    savingPreferenceProjectId.value = ''
+  }
+}
+
+async function beginProjectNameEdit() {
+  const project = selectedProject.value
+  if (!project || savingPreferenceProjectId.value) return
+  editingProjectId.value = project.id
+  projectNameDraft.value = project.name
+  await nextTick()
+  document.querySelector<HTMLInputElement>('.projectNameInput')?.focus()
+  document.querySelector<HTMLInputElement>('.projectNameInput')?.select()
+}
+
+function cancelProjectNameEdit() {
+  editingProjectId.value = ''
+  projectNameDraft.value = ''
+}
+
+async function commitProjectName() {
+  const project = selectedProject.value
+  if (!project || editingProjectId.value !== project.id || savingPreferenceProjectId.value) return
+  savingPreferenceProjectId.value = project.id
+  errorMessage.value = ''
+  try {
+    const result = await window.portManager.updateProjectPreference({
+      projectId: project.id,
+      displayName: projectNameDraft.value,
+    })
+    if (!result.ok || !result.project) {
+      errorMessage.value = result.error ?? '無法更新專案名稱。'
+      return
+    }
+    replaceProject(result.project)
+    cancelProjectNameEdit()
+    showToast(result.project.name === result.project.originalName ? '已恢復原始名稱' : '專案名稱已更新')
+    if (lastPortScanAt.value !== null) void scanPorts()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '無法更新專案名稱。'
+  } finally {
+    savingPreferenceProjectId.value = ''
+  }
+}
+
 async function scanWorkspace() {
   if (isScanning.value) return
   isScanning.value = true
@@ -156,6 +238,7 @@ async function selectWorkspace() {
 }
 
 function selectProject(projectId: string) {
+  if (editingProjectId.value && editingProjectId.value !== projectId) cancelProjectNameEdit()
   selectedProjectId.value = projectId
   const latest = tasks.value.find((task) => task.projectId === projectId)
   selectedTaskId.value = latest?.taskId ?? ''
@@ -420,33 +503,76 @@ onBeforeUnmount(() => {
           <input v-model="searchQuery" type="search" placeholder="搜尋專案…" />
         </label>
         <div class="projectList">
-          <button
-            v-for="project in filteredProjects"
-            :key="project.id"
-            class="projectItem"
-            :class="{ selected: project.id === selectedProjectId }"
-            @click="selectProject(project.id)"
-          >
-            <span class="projectIcon">{{ project.name.slice(0, 2).toUpperCase() }}</span>
-            <span class="projectMeta">
-              <strong>{{ project.name }}</strong>
-              <small>{{ project.relativePath }}</small>
-            </span>
-            <span
-              v-if="tasks.some((task) => task.projectId === project.id && runningStatuses.has(task.status))"
-              class="liveDot"
-              title="執行中"
-            ></span>
-          </button>
+          <section v-for="section in projectSections" :key="section.key" class="projectSection">
+            <div v-if="section.label" class="projectSectionTitle">
+              <span>{{ section.label }}</span>
+              <small>{{ section.projects.length }}</small>
+            </div>
+            <div v-for="project in section.projects" :key="project.id" class="projectItemRow">
+              <button
+                class="projectItem"
+                :class="{ selected: project.id === selectedProjectId }"
+                @click="selectProject(project.id)"
+              >
+                <span class="projectIcon">{{ project.name.slice(0, 2).toUpperCase() }}</span>
+                <span class="projectMeta">
+                  <strong>{{ project.name }}</strong>
+                  <small>{{ project.relativePath }}</small>
+                </span>
+                <span
+                  v-if="tasks.some((task) => task.projectId === project.id && runningStatuses.has(task.status))"
+                  class="liveDot"
+                  title="執行中"
+                ></span>
+              </button>
+              <button
+                class="projectPinButton"
+                :class="{ pinned: project.isPinned }"
+                :disabled="Boolean(savingPreferenceProjectId)"
+                :aria-label="project.isPinned ? `取消釘選 ${project.name}` : `釘選 ${project.name}`"
+                :title="project.isPinned ? '取消釘選' : '釘選專案'"
+                @click="toggleProjectPin(project)"
+              >★</button>
+            </div>
+          </section>
           <div v-if="filteredProjects.length === 0" class="emptyState compact">找不到符合的專案</div>
         </div>
       </aside>
 
       <section v-if="selectedProject" class="contentArea">
         <div class="projectHeading">
-          <div>
+          <div class="projectIdentity">
             <span class="eyebrow">SELECTED PROJECT</span>
-            <h2>{{ selectedProject.name }}</h2>
+            <div class="projectNameRow">
+              <button
+                class="headingPinButton"
+                :class="{ pinned: selectedProject.isPinned }"
+                :disabled="Boolean(savingPreferenceProjectId)"
+                :aria-label="selectedProject.isPinned ? '取消釘選專案' : '釘選專案'"
+                @click="toggleProjectPin(selectedProject)"
+              >★</button>
+              <input
+                v-if="editingProjectId === selectedProject.id"
+                v-model="projectNameDraft"
+                class="projectNameInput"
+                maxlength="80"
+                aria-label="自訂專案名稱"
+                @keydown.enter.prevent="commitProjectName"
+                @keydown.escape.prevent="cancelProjectNameEdit"
+                @blur="commitProjectName"
+              />
+              <h2 v-else>{{ selectedProject.name }}</h2>
+              <button
+                v-if="editingProjectId !== selectedProject.id"
+                class="editProjectNameButton"
+                title="編輯顯示名稱"
+                aria-label="編輯顯示名稱"
+                @click="beginProjectNameEdit"
+              >✎</button>
+            </div>
+            <small v-if="selectedProject.name !== selectedProject.originalName" class="originalProjectName">
+              原始名稱：{{ selectedProject.originalName }}
+            </small>
             <p>{{ selectedProject.path }}</p>
           </div>
           <div v-if="activeProjectTask" class="activeTaskBadge">
