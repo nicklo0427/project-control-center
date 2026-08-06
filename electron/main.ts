@@ -11,11 +11,14 @@ import { collectEnvironmentDiagnostics } from './services/environment'
 import { describePortRecord } from './services/port-descriptions'
 import { applyStopPolicy, stopPidGracefully } from './services/port-stop'
 import { scanProjects } from './services/projects'
+import { applyProjectPreferences, updateProjectPreference } from './services/project-preferences'
 import { SettingsStore } from './services/settings'
 import { isSafeLocalUrl, TaskManager } from './services/tasks'
 import type {
   PortRecord,
   ProjectPage,
+  ProjectPreferenceMap,
+  ProjectPreferenceResult,
   ProjectSummary,
   ScanPortsResult,
   StartTaskInput,
@@ -23,6 +26,7 @@ import type {
   StopPortResult,
   TaskLog,
   TaskRecord,
+  UpdateProjectPreferenceInput,
 } from '../shared/types'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -53,6 +57,8 @@ let settingsStore: SettingsStore
 let currentWorkspaceRoot: string | null = null
 let resolvedNpmExecutable = 'npm'
 let currentProjects: ProjectSummary[] = []
+let currentProjectPreferences: ProjectPreferenceMap = {}
+let projectPreferenceUpdateQueue: Promise<void> = Promise.resolve()
 let isCleanupInProgress = false
 
 app.setName('Project Control Center')
@@ -110,8 +116,10 @@ async function scanCurrentWorkspace() {
   const result = await scanProjects(currentWorkspaceRoot, process.env.APP_ROOT)
   if (result.ok) {
     currentWorkspaceRoot = result.rootPath
-    currentProjects = result.projects
-    taskManager.setProjects(result.projects)
+    currentProjectPreferences = await settingsStore.getProjectPreferences()
+    currentProjects = applyProjectPreferences(result.projects, currentProjectPreferences)
+    result.projects = currentProjects
+    taskManager.setProjects(currentProjects)
   }
   return result
 }
@@ -160,6 +168,31 @@ async function stopPortSafely(input: StopPortInput): Promise<StopPortResult> {
     : { ok: false, error: result.error }
 }
 
+function handleUpdateProjectPreference(
+  input: UpdateProjectPreferenceInput,
+): Promise<ProjectPreferenceResult> {
+  const operation = projectPreferenceUpdateQueue.then(async () => {
+    const result = updateProjectPreference(currentProjects, currentProjectPreferences, input)
+    if (!result.ok || !result.projects || !result.preferences || !result.project) {
+      return { ok: false, error: result.error ?? '無法更新專案偏好。' }
+    }
+
+    try {
+      await settingsStore.setProjectPreferences(result.preferences)
+    } catch {
+      return { ok: false, error: '無法保存專案偏好，請確認 App 的資料目錄可寫入。' }
+    }
+
+    currentProjects = result.projects
+    currentProjectPreferences = result.preferences
+    taskManager.setProjects(currentProjects)
+    taskManager.updateProjectName(result.project.id, result.project.name)
+    return { ok: true, project: result.project }
+  })
+  projectPreferenceUpdateQueue = operation.then(() => undefined, () => undefined)
+  return operation
+}
+
 function registerIpcHandlers() {
   ipcMain.handle('workspace:scan', scanCurrentWorkspace)
   ipcMain.handle('workspace:select', async () => {
@@ -176,6 +209,9 @@ function registerIpcHandlers() {
     if (!scanResult.ok) return { ok: false, error: scanResult.error }
     return { ok: true, rootPath: currentWorkspaceRoot }
   })
+  ipcMain.handle('projects:update-preference', (_event, input: UpdateProjectPreferenceInput) => (
+    handleUpdateProjectPreference(input)
+  ))
   ipcMain.handle('tasks:start', (_event, input: StartTaskInput) => taskManager.startTask(input))
   ipcMain.handle('tasks:stop', (_event, taskId: string) => taskManager.stopTask(taskId))
   ipcMain.handle('tasks:list', () => taskManager.listTasks())

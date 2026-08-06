@@ -54,7 +54,11 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .searchBox { display: flex; align-items: center; gap: 8px; height: 36px; margin: 0 13px 10px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; background: #090f1b; color: var(--muted); }
 .searchBox input { width: 100%; border: 0; outline: 0; background: transparent; color: #dce6f8; font-size: 12px; }
 .projectList { min-height: 0; overflow-y: auto; padding: 2px 8px 20px; }
-.projectItem { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr) 8px; align-items: center; gap: 10px; width: 100%; padding: 9px; border: 1px solid transparent; border-radius: 9px; background: transparent; cursor: pointer; text-align: left; }
+.projectSection + .projectSection { margin-top: 9px; padding-top: 7px; border-top: 1px solid rgba(37, 51, 74, .7); }
+.projectSectionTitle { display: flex; align-items: center; justify-content: space-between; padding: 4px 9px 5px; color: #687b98; font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
+.projectSectionTitle small { display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px; background: #202d42; color: #91a4c1; font-size: 8px; }
+.projectItemRow { position: relative; }
+.projectItem { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr) 8px; align-items: center; gap: 10px; width: 100%; padding: 9px 39px 9px 9px; border: 1px solid transparent; border-radius: 9px; background: transparent; cursor: pointer; text-align: left; }
 .projectItem:hover { background: #141e2e; }
 .projectItem.selected { border-color: #2b745f; background: linear-gradient(90deg, rgba(36, 151, 116, .2), rgba(20, 34, 52, .85)); }
 .projectIcon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; background: #202c41; color: #93acd0; font-size: 10px; font-weight: 900; }
@@ -64,10 +68,21 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .projectMeta strong { font-size: 12px; }
 .projectMeta small { color: var(--muted); font-size: 10px; }
 .liveDot, .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+.projectPinButton { position: absolute; z-index: 1; top: 50%; right: 8px; width: 27px; height: 27px; transform: translateY(-50%); border: 0; border-radius: 7px; background: transparent; color: #52617a; cursor: pointer; font-size: 14px; }
+.projectPinButton:hover:not(:disabled), .projectPinButton.pinned { background: rgba(244, 188, 79, .11); color: #f4bc4f; }
 
 .contentArea { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
 .projectHeading { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 21px 25px 15px; }
+.projectIdentity { min-width: 0; }
+.projectNameRow { display: flex; align-items: center; min-height: 35px; gap: 8px; }
 .projectHeading h2, .portsHeading h2 { margin: 4px 0 2px; font-size: 24px; letter-spacing: -.6px; }
+.headingPinButton, .editProjectNameButton { flex: 0 0 auto; border: 0; border-radius: 7px; background: transparent; cursor: pointer; }
+.headingPinButton { width: 30px; height: 30px; color: #52617a; font-size: 18px; }
+.headingPinButton:hover:not(:disabled), .headingPinButton.pinned { background: rgba(244, 188, 79, .11); color: #f4bc4f; }
+.editProjectNameButton { width: 27px; height: 27px; color: #71829d; font-size: 15px; }
+.editProjectNameButton:hover { background: #172235; color: #b8c8de; }
+.projectNameInput { width: min(520px, 52vw); height: 35px; padding: 0 9px; border: 1px solid #2f9276; border-radius: 7px; outline: 0; background: #0a111e; color: #dce6f8; font-size: 20px; font-weight: 700; }
+.originalProjectName { display: block; margin: -1px 0 3px 38px; color: #687b98; font-size: 9px; }
 .projectHeading p, .portsHeading p { max-width: 720px; margin: 0; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .activeTaskBadge, .idleBadge { display: flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #286f5e; border-radius: 8px; background: rgba(37, 140, 107, .12); color: #7be7bd; font-size: 11px; }
 .idleBadge { border-color: var(--line); background: #111a29; color: var(--muted); }

@@ -5,10 +5,13 @@ import { describePortRecord, findProjectByCwd } from './port-descriptions'
 const project: ProjectSummary = {
   id: 'project-1',
   name: 'activity-vue3',
+  originalName: 'activity-vue3',
   path: '/workspace/activity_vue3',
   relativePath: 'activity_vue3',
   scripts: [],
   brands: ['ot888'],
+  isPinned: false,
+  pinnedAt: null,
 }
 
 function port(overrides: Partial<PortRecord> = {}): PortRecord {

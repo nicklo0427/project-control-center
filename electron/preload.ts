@@ -1,9 +1,10 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import type { ProjectPage, StartTaskInput, StopPortInput, TaskLog, TaskRecord } from '../shared/types'
+import type { ProjectPage, StartTaskInput, StopPortInput, TaskLog, TaskRecord, UpdateProjectPreferenceInput } from '../shared/types'
 
 contextBridge.exposeInMainWorld('portManager', {
   scanWorkspace: () => ipcRenderer.invoke('workspace:scan'),
   selectWorkspace: () => ipcRenderer.invoke('workspace:select'),
+  updateProjectPreference: (input: UpdateProjectPreferenceInput) => ipcRenderer.invoke('projects:update-preference', input),
   startTask: (input: StartTaskInput) => ipcRenderer.invoke('tasks:start', input),
   stopTask: (taskId: string) => ipcRenderer.invoke('tasks:stop', taskId),
   listTasks: () => ipcRenderer.invoke('tasks:list'),

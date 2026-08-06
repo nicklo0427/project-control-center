@@ -1,6 +1,7 @@
 import type {
   EnvironmentDiagnostics,
   ProjectPage,
+  ProjectPreferenceResult,
   ScanPortsResult,
   ScanProjectsResult,
   StartTaskInput,
@@ -9,6 +10,7 @@ import type {
   TaskLog,
   TaskRecord,
   TaskResult,
+  UpdateProjectPreferenceInput,
   WorkspaceSelectionResult,
 } from '../../shared/types'
 
@@ -17,6 +19,7 @@ declare global {
     portManager: {
       scanWorkspace: () => Promise<ScanProjectsResult>
       selectWorkspace: () => Promise<WorkspaceSelectionResult>
+      updateProjectPreference: (input: UpdateProjectPreferenceInput) => Promise<ProjectPreferenceResult>
       startTask: (input: StartTaskInput) => Promise<TaskResult>
       stopTask: (taskId: string) => Promise<TaskResult>
       listTasks: () => Promise<TaskRecord[]>

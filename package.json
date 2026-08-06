@@ -1,7 +1,7 @@
 {
   "name": "project-control-center",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local desktop console for discovering and running npm projects",
   "author": "nicklo0427",
   "license": "MIT",
